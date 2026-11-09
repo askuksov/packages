@@ -1,6 +1,9 @@
 # Releases served by packages.kuksov.dev, one per line:
 #
-#   <owner/repo> <tag> <fingerprint of the key that signs the release's SHA256SUMS>
+#   <owner/repo> <tag> <release key fingerprint> <package names>
+#
+# The release key signs the release's SHA256SUMS. Package names are
+# comma-separated; a package with any other name is refused.
 #
 # The site is rebuilt from this list on every run, so a line removed here
 # removes that release from apt and dnf. Keep the last one or two versions of
@@ -9,4 +12,4 @@
 #
 # The fingerprint must have its public key in keys/release/<fingerprint>.asc.
 
-askuksov/kokos-app v0.1.0 A1764F50744172E0AECD1BB733B58CD5DEE4EF2B
+askuksov/kokos-app v0.1.0 A1764F50744172E0AECD1BB733B58CD5DEE4EF2B kokos

@@ -53,7 +53,8 @@ the [Publish](.github/workflows/publish.yml) workflow:
 
 1. downloads the `.deb` and `.rpm` files of each listed release, and refuses
    any release whose `SHA256SUMS.asc` is not signed by the key pinned for it
-   in `sources.txt` (public keys in `keys/release/`);
+   in `sources.txt` (public keys in `keys/release/`), or whose packages have
+   another name or a version other than the tag's;
 2. signs the `.rpm` files, builds the apt and dnf indexes, and signs them with
    the repository key;
 3. verifies the result with the published public key and deploys the whole
@@ -64,7 +65,8 @@ The site is rebuilt from scratch on every run, so no package is stored in git.
 ## Adding a release
 
 1. Publish the app release with a signed `SHA256SUMS` as usual.
-2. Add a line to `sources.txt`: `<owner/repo> <tag> <release key fingerprint>`.
+2. Add a line to `sources.txt`:
+   `<owner/repo> <tag> <release key fingerprint> <package names>`.
    For a new app, also add its public release key as
    `keys/release/<fingerprint>.asc`.
 3. Drop old lines so each app keeps one or two versions: GitHub Pages serves at

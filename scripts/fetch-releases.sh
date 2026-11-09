@@ -2,10 +2,13 @@
 # Downloads the .deb and .rpm files of every release in sources.txt and
 # proves each one is the file the app's maintainer signed: SHA256SUMS.asc must
 # carry a good signature from the fingerprint pinned in sources.txt, and every
-# package must be listed in SHA256SUMS with a matching hash.
+# package must be listed in SHA256SUMS with a matching hash. Each package must
+# also carry a name allowed for that source and the version named by the tag,
+# so one app cannot ship another app's package and old signed files cannot be
+# re-uploaded under a newer tag.
 #
 # Usage: fetch-releases.sh <sources.txt> <keys-dir> <out-dir>
-# Needs gh (GH_TOKEN in CI), gpg, gpgv, sha256sum.
+# Needs gh (GH_TOKEN in CI), gpg, gpgv, sha256sum, dpkg-deb, rpm.
 set -euo pipefail
 
 SOURCES="${1:?usage: fetch-releases.sh <sources.txt> <keys-dir> <out-dir>}"
@@ -23,8 +26,10 @@ lineno=0
 while IFS= read -r line || [ -n "$line" ]; do
   lineno=$((lineno + 1))
   case "$line" in ''|'#'*) continue ;; esac
-  read -r repo tag fpr extra <<<"$line"
-  [ -z "${extra:-}" ] || fail "$SOURCES:$lineno: expected 3 fields, got more"
+  read -r repo tag fpr names extra <<<"$line"
+  [ -z "${extra:-}" ] || fail "$SOURCES:$lineno: expected 4 fields, got more"
+  [[ "${names:-}" =~ ^[a-z0-9][a-z0-9+.-]+(,[a-z0-9][a-z0-9+.-]+)*$ ]] ||
+    fail "$SOURCES:$lineno: 4th field must list package names, comma-separated"
   [[ "$repo" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || fail "$SOURCES:$lineno: bad repo '$repo'"
   [[ "$tag" =~ ^[A-Za-z0-9_.+-]+$ ]] || fail "$SOURCES:$lineno: bad tag '$tag'"
   [[ "${fpr:-}" =~ ^[0-9A-F]{40}$ ]] || fail "$SOURCES:$lineno: fingerprint must be 40 upper-case hex digits"
@@ -63,6 +68,19 @@ while IFS= read -r line || [ -n "$line" ]; do
   done
   [ "$pkgs" -gt 0 ] || fail "$repo $tag: release has no .deb or .rpm"
   (cd "$dir" && sha256sum --quiet --ignore-missing -c SHA256SUMS) || fail "$repo $tag: checksum mismatch"
+
+  # The tag must name the packages' version: v1.2.3 -> 1.2.3.
+  want="${tag#v}"
+  for f in "$dir"/*.deb "$dir"/*.rpm; do
+    [ -e "$f" ] || continue
+    case "$f" in
+      *.deb) name=$(dpkg-deb -f "$f" Package); ver=$(dpkg-deb -f "$f" Version)
+             ver="${ver#*:}"; ver="${ver%%-*}" ;;
+      *.rpm) name=$(rpm -qp --qf '%{NAME}' "$f" 2>/dev/null); ver=$(rpm -qp --qf '%{VERSION}' "$f" 2>/dev/null) ;;
+    esac
+    [[ ",$names," == *",$name,"* ]] || fail "$repo $tag: $(basename "$f") is package '$name', not one of $names"
+    [ "$ver" = "$want" ] || fail "$repo $tag: $(basename "$f") has version '$ver', the tag says '$want'"
+  done
 
   rm -f "$dir/SHA256SUMS" "$dir/SHA256SUMS.asc"
   echo "verified $pkgs package(s) from $repo $tag"
