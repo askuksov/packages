@@ -80,6 +80,20 @@ while IFS= read -r line || [ -n "$line" ]; do
     esac
     [[ ",$names," == *",$name,"* ]] || fail "$repo $tag: $(basename "$f") is package '$name', not one of $names"
     [ "$ver" = "$want" ] || fail "$repo $tag: $(basename "$f") has version '$ver', the tag says '$want'"
+
+    # Fields that let a package take another package's place on upgrade must
+    # name only this source's own packages. rpm Provides is left out: rpm
+    # fills it with generated entries, and a provide alone replaces nothing.
+    case "$f" in
+      *.deb) rel=$(for field in Provides Replaces Breaks Conflicts; do dpkg-deb -f "$f" "$field"; done |
+                   tr '|' ',' | tr ',' '\n' | sed -E 's/\(.*\)//; s/:[a-z0-9]+//; s/[[:space:]]//g') ;;
+      *.rpm) rel=$(rpm -qp --qf '[%{OBSOLETENAME}\n][%{CONFLICTNAME}\n]' "$f" 2>/dev/null) ;;
+    esac
+    while IFS= read -r other; do
+      [ -n "$other" ] || continue
+      [[ ",$names," == *",$other,"* ]] ||
+        fail "$repo $tag: $(basename "$f") replaces or conflicts with '$other', which is not one of $names"
+    done <<<"$rel"
   done
 
   rm -f "$dir/SHA256SUMS" "$dir/SHA256SUMS.asc"
