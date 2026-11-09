@@ -3,37 +3,154 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>kuksov.dev packages</title>
+<title>packages.kuksov.dev</title>
+<meta name="description" content="apt and dnf repositories for Linux apps by Oleksandr Kuksov.">
 <style>
-  :root { color-scheme: light dark; --bg: #faf8f5; --fg: #2b2622; --muted: #6f665e; --code: #f0ebe4; }
-  @media (prefers-color-scheme: dark) { :root { --bg: #1c1916; --fg: #ece6df; --muted: #a69c92; --code: #2a2521; } }
-  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, sans-serif; }
-  main { max-width: 760px; margin: 0 auto; padding: 48px 16px; }
-  h1 { font-size: 1.6rem; margin: 0 0 8px; }
-  h2 { font-size: 1.1rem; margin: 32px 0 8px; }
-  p { color: var(--muted); }
-  pre { background: var(--code); padding: 12px 14px; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; }
-  a { color: inherit; }
+  :root {
+    color-scheme: light dark;
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --fg: #18181b;
+    --muted: #71717a;
+    --border: #e4e4e7;
+    --code-bg: #f4f4f5;
+    --button: #ffffff;
+    --button-hover: #f4f4f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c0c0d;
+      --surface: #141416;
+      --fg: #ececee;
+      --muted: #a1a1aa;
+      --border: #27272a;
+      --code-bg: #1c1c1f;
+      --button: #1c1c1f;
+      --button-hover: #27272a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 56px 16px 72px; }
+  code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  a { color: inherit; text-underline-offset: 3px; }
+
+  header h1 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 6px; }
+  header p { margin: 0; color: var(--muted); }
+
+  section { margin-top: 48px; }
+  h2 {
+    display: flex; align-items: baseline; gap: 10px;
+    font-size: 1.05rem; font-weight: 600; margin: 0 0 4px;
+  }
+  h2 .step { color: var(--muted); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .lead { color: var(--muted); margin: 0 0 20px; }
+  h3 { font-size: 0.9rem; font-weight: 600; margin: 24px 0 8px; }
+
+  .block { position: relative; }
+  pre {
+    margin: 0; padding: 14px 16px; padding-right: 72px;
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    font-size: 0.82rem; line-height: 1.7; overflow-x: auto; white-space: pre;
+  }
+  .copy {
+    position: absolute; top: 8px; right: 8px;
+    font: 500 0.75rem/1 ui-sans-serif, system-ui, sans-serif;
+    color: var(--muted); background: var(--button);
+    border: 1px solid var(--border); border-radius: 6px; padding: 6px 9px; cursor: pointer;
+  }
+  .copy:hover { background: var(--button-hover); color: var(--fg); }
+
+  .key {
+    margin-top: 20px; padding: 12px 16px;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+    font-size: 0.85rem; color: var(--muted);
+  }
+  .key .mono { display: block; color: var(--fg); font-size: 0.85rem; margin-top: 2px; word-break: break-word; }
+
+  .apps { display: grid; gap: 16px; }
+  .app {
+    padding: 20px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
+  }
+  .app-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+  .app-name { font-size: 1.05rem; font-weight: 600; }
+  .app-version {
+    font-size: 0.75rem; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px;
+  }
+  .app-link { margin-left: auto; font-size: 0.85rem; color: var(--muted); }
+  .app-desc { margin: 6px 0 2px; }
+  .app-meta { margin: 0 0 14px; font-size: 0.85rem; color: var(--muted); }
+  .app .block + .block { margin-top: 8px; }
+
+  footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); }
 </style>
 </head>
 <body>
 <main>
-  <h1>kuksov.dev packages</h1>
-  <p>apt and dnf repositories for apps by Oleksandr Kuksov. x86_64, glibc 2.39 or newer
-  (Ubuntu 24.04+, Debian 13+, Fedora 40+). The key fingerprint and details are in the
-  <a href="https://github.com/askuksov/packages">repository README</a>.</p>
+  <header>
+    <h1>packages.kuksov.dev</h1>
+    <p>apt and dnf repositories for Linux apps by Oleksandr Kuksov.</p>
+  </header>
 
-  <h2>Debian / Ubuntu</h2>
-<pre>sudo install -d -m 0755 /etc/apt/keyrings
-sudo curl -fsSLo /etc/apt/keyrings/kuksov.gpg https://packages.kuksov.dev/kuksov-archive-keyring.gpg
-echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/kuksov.gpg] https://packages.kuksov.dev/deb stable main" \
+  <section>
+    <h2><span class="step">1</span>Add the repository</h2>
+    <p class="lead">Once per machine. Your package manager then installs and updates the apps below.</p>
+
+    <h3>Debian, Ubuntu</h3>
+    <div class="block"><pre>sudo install -d -m 0755 /etc/apt/keyrings
+sudo curl -fsSLo /etc/apt/keyrings/kuksov.gpg \
+  https://packages.kuksov.dev/kuksov-archive-keyring.gpg
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/kuksov.gpg]" \
+  "https://packages.kuksov.dev/deb stable main" \
   | sudo tee /etc/apt/sources.list.d/kuksov.list
-sudo apt update
-sudo apt install kokos</pre>
+sudo apt update</pre></div>
 
-  <h2>Fedora</h2>
-<pre>sudo curl -fsSLo /etc/yum.repos.d/kuksov.repo https://packages.kuksov.dev/rpm/kuksov.repo
-sudo dnf install kokos</pre>
+    <h3>Fedora</h3>
+    <div class="block"><pre>sudo curl -fsSLo /etc/yum.repos.d/kuksov.repo \
+  https://packages.kuksov.dev/rpm/kuksov.repo</pre></div>
+
+    <div class="key">
+      Packages and indexes are signed with this key. dnf asks you to confirm it on the first install.
+      <span class="mono">{{FINGERPRINT}}</span>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="step">2</span>Install an app</h2>
+    <p class="lead">x86_64 only.</p>
+    <div class="apps">
+{{APPS}}
+    </div>
+  </section>
+
+  <footer>
+    Source and details: <a href="https://github.com/askuksov/packages">github.com/askuksov/packages</a>
+  </footer>
 </main>
+<script>
+  // Add a copy button to each command block. Without JavaScript the commands
+  // stay selectable as plain text.
+  document.querySelectorAll('.block').forEach(function (block) {
+    var pre = block.querySelector('pre');
+    if (!pre || !navigator.clipboard) return;
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'copy';
+    button.textContent = 'Copy';
+    button.addEventListener('click', function () {
+      navigator.clipboard.writeText(pre.textContent).then(function () {
+        button.textContent = 'Copied';
+        setTimeout(function () { button.textContent = 'Copy'; }, 1500);
+      });
+    });
+    block.appendChild(button);
+  });
+</script>
 </body>
 </html>
