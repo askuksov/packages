@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kuksov.dev packages</title>
+<style>
+  :root { color-scheme: light dark; --bg: #faf8f5; --fg: #2b2622; --muted: #6f665e; --code: #f0ebe4; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1c1916; --fg: #ece6df; --muted: #a69c92; --code: #2a2521; } }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 16px; }
+  h1 { font-size: 1.6rem; margin: 0 0 8px; }
+  h2 { font-size: 1.1rem; margin: 32px 0 8px; }
+  p { color: var(--muted); }
+  pre { background: var(--code); padding: 12px 14px; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; }
+  a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+  <h1>kuksov.dev packages</h1>
+  <p>apt and dnf repositories for apps by Oleksandr Kuksov. x86_64, glibc 2.39 or newer
+  (Ubuntu 24.04+, Debian 13+, Fedora 40+). The key fingerprint and details are in the
+  <a href="https://github.com/askuksov/packages">repository README</a>.</p>
+
+  <h2>Debian / Ubuntu</h2>
+<pre>sudo install -d -m 0755 /etc/apt/keyrings
+sudo curl -fsSLo /etc/apt/keyrings/kuksov.gpg https://packages.kuksov.dev/kuksov-archive-keyring.gpg
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/kuksov.gpg] https://packages.kuksov.dev/deb stable main" \
+  | sudo tee /etc/apt/sources.list.d/kuksov.list
+sudo apt update
+sudo apt install kokos</pre>
+
+  <h2>Fedora</h2>
+<pre>sudo curl -fsSLo /etc/yum.repos.d/kuksov.repo https://packages.kuksov.dev/rpm/kuksov.repo
+sudo dnf install kokos</pre>
+</main>
+</body>
+</html>

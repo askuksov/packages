@@ -1,0 +1,81 @@
+# Rebuilds packages.kuksov.dev from sources.txt and deploys it to GitHub Pages.
+#
+# Every run starts from nothing: it downloads the listed releases, checks each
+# one against its maintainer's signature, signs the packages and indexes with
+# the repository key, and replaces the whole site in one deploy. No package
+# ever enters git history.
+#
+# Repository setup this workflow expects:
+#   secret REPO_GPG_PRIVATE_KEY  armored secret key, no passphrase
+#   variable REPO_GPG_FPR        its fingerprint
+#   Settings > Pages > Source    GitHub Actions
+name: Publish
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    env:
+      REPO_GPG_KEY: ${{ vars.REPO_GPG_FPR }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends apt-utils createrepo-c rpm gpgv
+
+      - name: Fetch and verify the releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/fetch-releases.sh sources.txt keys/release "$RUNNER_TEMP/bundle"
+
+      - name: Import the repository key
+        env:
+          SECRET_KEY: ${{ secrets.REPO_GPG_PRIVATE_KEY }}
+        run: |
+          [ -n "$REPO_GPG_KEY" ] || { echo "FAIL: variable REPO_GPG_FPR is not set"; exit 1; }
+          [ -n "$SECRET_KEY" ] || { echo "FAIL: secret REPO_GPG_PRIVATE_KEY is not set"; exit 1; }
+          export GNUPGHOME="$RUNNER_TEMP/gnupg"
+          mkdir -m 700 "$GNUPGHOME"
+          echo "GNUPGHOME=$GNUPGHOME" >>"$GITHUB_ENV"
+          printf '%s\n' "$SECRET_KEY" | gpg --batch --import
+          echo "%_gpg_name $REPO_GPG_KEY" >~/.rpmmacros
+
+      - name: Build and sign the site
+        run: bash scripts/build-site.sh "$RUNNER_TEMP/bundle" "$RUNNER_TEMP/site"
+
+      - name: Remove the repository key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/gnupg" ~/.rpmmacros
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ${{ runner.temp }}/site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
