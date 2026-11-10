@@ -74,7 +74,7 @@ def card(name, repo, stanza):
         f'        <p class="app-desc">{e(summary)}</p>',
         f'        <p class="app-meta">{e(" · ".join(meta))}</p>' if meta else "",
         block(f"sudo apt install {name}"),
-        block(f"sudo dnf install {name}"),
+        block(f"sudo dnf --setopt=assumeyes=False install {name}"),
         '      </article>',
     ]
     return "\n".join(l for l in lines if l)
